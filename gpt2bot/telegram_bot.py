@@ -164,7 +164,7 @@ def message(self, update, context):
         for msg in msgs:
             split = msg.split(' ')
             msgsplit = bot_message.split(' ')
-            maxlen = min([split, msgsplit])
+            maxlen = min([len(split), len(msgsplit)])
             same = 0
             for i in range(0, maxlen-1):
                 if split[i] == msgsplit[i]:
