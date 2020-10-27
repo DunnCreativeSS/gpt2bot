@@ -128,7 +128,8 @@ def message(self, update, context):
     }
     turns.append(turn)
     turn['user_messages'].append(user_message)
-    logger.info(f"{update.effective_message.chat_id} - User >>> {user_message}")
+
+    print(f"{update.effective_message.chat.username} - User >>> {user_message}")
     # Merge turns into a single history (don't forget EOS token)
     history = ""
     from_index = max(len(turns)-max_turns_history-1, 0) if max_turns_history >= 0 else 0
@@ -169,22 +170,27 @@ def message(self, update, context):
             for i in range(0, maxlen-1):
                 if split[i] == msgsplit[i]:
                     same = same + 1
+            #print(same / maxlen)        
             if same / maxlen > 0.66:
                 gogo = False
         if 'kik' not in bot_message.lower() and 'DM' not in bot_message.upper() and gogo == True:
             done = True
     turn['bot_messages'].append(bot_message)
-    logger.info(f"{update.effective_message.chat_id} - Bot >>> {bot_message}")
+
+    
     if return_gif:
         # Return response as GIF
-        gif_url = translate_message_to_gif(bot_message, self.config)
+        gif_url = translate_message_to_gif(user_message, self.config)
+        print(f"{update.effective_message.chat.username} - Bot >>> (sends) " + user_message + " gif! :)")
         context.bot.send_animation(update.effective_message.chat_id, gif_url)
     elif return_porn:
         # Return response as GIF
-        porn_url = translate_message_to_porn(bot_message, self.config)
+        porn_url = translate_message_to_porn(user_message, self.config)
+        print(f"{update.effective_message.chat.username} - Bot >>> (sends) " + user_message + " porn! :)")
         context.bot.send_photo(update.effective_message.chat_id, porn_url)
     else:
         # Return response as text
+        print(f"{update.effective_message.chat_id} - Bot >>> {bot_message}")
         update.message.reply_text(bot_message)
         
 
