@@ -156,7 +156,12 @@ def message(self, update, context):
             # This way you can avoid loops
             bot_message = random.choice(bot_messages)
         gogo = True
+        msgs = []
+        for msg in turn['user_messages']:
+            msgs.append(msg)
         for msg in turn['bot_messages']:
+            msgs.append(msg)
+        for msg in msgs:
             split = msg.split(' ')
             msgsplit = bot_message.split(' ')
             maxlen = min([split, msgsplit])
