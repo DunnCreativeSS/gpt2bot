@@ -128,25 +128,36 @@ def load_model(target_folder_name, config):
     no_cuda = config.getboolean('model', 'no_cuda')
 
     logger.info(f"Loading model from {target_folder_name}...")
+    print(1)
     device = torch.device("cuda" if torch.cuda.is_available() and not no_cuda else "cpu")
+    print(2)
     # Tokenizer
     target_folder = os.path.join(data_folder, target_folder_name)
     tokenizer = GPT2Tokenizer(os.path.join(target_folder, 'vocab.json'), os.path.join(target_folder, 'merges.txt'))
+    print(3)
     # Config
     config = GPT2Config.from_json_file(os.path.join(target_folder, 'config.json'))
+    print(4)
     # Weights
+    torch.cuda.set_device(0)
     state_dict_path = glob(os.path.join(target_folder, f'*.pkl'))[0]
     state_dict = torch.load(state_dict_path, map_location=device)
+    print(5)
     if model_size == 'small':
         for key in list(state_dict.keys()):
             state_dict[key.replace('module.', '')] = state_dict.pop(key)
     state_dict['lm_head.weight'] = state_dict['lm_head.decoder.weight']
     state_dict.pop("lm_head.decoder.weight", None)
     # Model
+    print(6)
     model = GPT2LMHeadModel(config)
+    print(7)
     model.load_state_dict(state_dict)
+    print(8)
     model.to(device)
+    print(9)
     model.eval()
+    print(10)
     return model, tokenizer
 
 def main():

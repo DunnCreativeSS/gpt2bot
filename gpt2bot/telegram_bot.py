@@ -1,6 +1,9 @@
 #  Copyright (c) polakowo
 #  Licensed under the MIT license.
+import pornhub
+from time import sleep
 
+import random
 # !pip install python-telegram-bot --upgrade
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 from telegram import ChatAction, ParseMode
@@ -27,7 +30,7 @@ logger = logging.getLogger(__name__)
 
 def start_command(update, context):
     context.chat_data['turns'] = []
-    update.message.reply_text("Just start texting me. Append \"@gif\" for me to generate a GIF. If I'm getting annoying, type \"Bye\"")
+    update.message.reply_text("Just start texting me. Append \"@gif\" for me to generate a GIF. Append \"@porn\" for me to generate something raunchy. If I'm getting annoying, type \"Bye\"")
 
 def requests_retry_session(
     retries=3,
@@ -47,7 +50,14 @@ def requests_retry_session(
     session.mount('http://', adapter)
     session.mount('https://', adapter)
     return session
+def translate_message_to_porn(message, config):
+    keywords = [message]
+    client = pornhub.PornHub(keywords=keywords)
 
+    photos = []
+    for photo_url in client.getPhotos(3, random.randint(1,3)):
+        photos.append(photo_url)
+    return photos[random.randint(0, len(photos)-1)]
 def translate_message_to_gif(message, config):
     # https://engineering.giphy.com/contextually-aware-search-giphy-gets-work-specific/
     params = {
@@ -98,6 +108,11 @@ def message(self, update, context):
         update.message.reply_text("Bye")
         return None
     return_gif = False
+    return_porn = False
+    if '@porn' in user_message:
+        # Return gif
+        return_porn = True
+        user_message = user_message.replace('@porn', '').strip()
     if '@gif' in user_message:
         # Return gif
         return_gif = True
@@ -122,28 +137,35 @@ def message(self, update, context):
             history += gpt_normalize(message) + self.tokenizer.eos_token
         for message in turn['bot_messages']:
             history += gpt_normalize(message) + self.tokenizer.eos_token
-
-    # Generate bot messages
-    bot_messages = generate_response(
-        self.model, 
-        self.tokenizer, 
-        history, 
-        self.config, 
-        mmi_model=self.mmi_model, 
-        mmi_tokenizer=self.mmi_tokenizer
-    )
-    if num_samples == 1:
-        bot_message = bot_messages[0]
-    else:
-        # TODO: Select a message that is the most appropriate given the context
-        # This way you can avoid loops
-        bot_message = random.choice(bot_messages)
+    done = False
+    while done == False:
+        # Generate bot messages
+        bot_messages = generate_response(
+            self.model, 
+            self.tokenizer, 
+            history, 
+            self.config, 
+            mmi_model=self.mmi_model, 
+            mmi_tokenizer=self.mmi_tokenizer
+        )
+        if num_samples == 1:
+            bot_message = bot_messages[0]
+        else:
+            # TODO: Select a message that is the most appropriate given the context
+            # This way you can avoid loops
+            bot_message = random.choice(bot_messages)
+        if 'kik' not in bot_message.lower() and 'DM' not in bot_message.upper():
+            done = True
     turn['bot_messages'].append(bot_message)
     logger.info(f"{update.effective_message.chat_id} - Bot >>> {bot_message}")
     if return_gif:
         # Return response as GIF
         gif_url = translate_message_to_gif(bot_message, self.config)
         context.bot.send_animation(update.effective_message.chat_id, gif_url)
+    elif return_porn:
+        # Return response as GIF
+        porn_url = translate_message_to_porn(bot_message, self.config)
+        context.bot.send_photo(update.effective_message.chat_id, porn_url)
     else:
         # Return response as text
         update.message.reply_text(bot_message)
