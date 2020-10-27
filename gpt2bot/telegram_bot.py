@@ -18,6 +18,7 @@ from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 import random
 import re
+import os
 
 from model import download_model_folder, download_reverse_model_folder, load_model
 from decoder import generate_response
@@ -61,7 +62,7 @@ def translate_message_to_porn(message, config):
 def translate_message_to_gif(message, config):
     # https://engineering.giphy.com/contextually-aware-search-giphy-gets-work-specific/
     params = {
-        'api_key': config.get('chatbot', 'giphy_token'),
+        'api_key': os.environ['giphytoken'],
         's': message,
         'weirdness': config.getint('chatbot', 'giphy_weirdness')
     }
@@ -186,7 +187,7 @@ class TelegramBot:
         self.config = config
 
         # Set up Telegram bot
-        self.updater = Updater(config.get('chatbot', 'telegram_token'), use_context=True)
+        self.updater = Updater(os.environ['tgtoken'], use_context=True)
         dp = self.updater.dispatcher
 
         # on different commands - answer in Telegram
