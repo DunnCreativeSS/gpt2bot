@@ -155,7 +155,18 @@ def message(self, update, context):
             # TODO: Select a message that is the most appropriate given the context
             # This way you can avoid loops
             bot_message = random.choice(bot_messages)
-        if 'kik' not in bot_message.lower() and 'DM' not in bot_message.upper():
+        gogo = True
+        for msg in turn['bot_messages']:
+            split = msg.split(' ')
+            msgsplit = bot_message.split(' ')
+            maxlen = min([split, msgsplit])
+            same = 0
+            for i in range(0, maxlen-1):
+                if split[i] == msgsplit[i]:
+                    same = same + 1
+            if same / maxlen > 0.66:
+                gogo = False
+        if 'kik' not in bot_message.lower() and 'DM' not in bot_message.upper() and gogo == True:
             done = True
     turn['bot_messages'].append(bot_message)
     logger.info(f"{update.effective_message.chat_id} - Bot >>> {bot_message}")
