@@ -193,7 +193,7 @@ def message(self, update, context):
         context.bot.send_photo(update.effective_message.chat_id, porn_url)
     else:
         # Return response as text
-        print(f"{update.effective_message.chat_id} - Bot >>> {bot_message}")
+        print(f"{update.effective_message.chat.username} - Bot >>> {bot_message}")
         update.message.reply_text(bot_message)
         
 
