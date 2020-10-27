@@ -103,7 +103,7 @@ def message(self, update, context):
     turns = context.chat_data['turns']
 
     user_message = update.message.text
-    if user_message.split().length >= 128:
+    if len(user_message) >= 128:
         user_message = user_message[0:127]
     if user_message.lower() == 'bye':
         # Restart chat
